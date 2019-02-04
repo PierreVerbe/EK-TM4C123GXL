@@ -26,14 +26,14 @@ void loop() {
   Serial.println(valuePot); 
   switch(valuePot){
     case 1:
-     digitalWrite(bargraph1, HIGH);
-     digitalWrite(bargraph2, LOW);
-     digitalWrite(bargraph3, LOW);
-     digitalWrite(bargraph4, LOW);
-     digitalWrite(bargraph5, LOW);
-     break;
+      digitalWrite(bargraph1, HIGH);
+      digitalWrite(bargraph2, LOW);
+      digitalWrite(bargraph3, LOW);
+      digitalWrite(bargraph4, LOW);
+      digitalWrite(bargraph5, LOW);
+      break;
 
-      case 2:
+   case 2:
       digitalWrite(bargraph1, LOW);
       digitalWrite(bargraph2, HIGH);
       digitalWrite(bargraph3, LOW);
@@ -41,7 +41,8 @@ void loop() {
       digitalWrite(bargraph5, LOW);
       break;
 
-      case 3:
+
+   case 3:
       digitalWrite(bargraph1, LOW);
       digitalWrite(bargraph2, LOW);
       digitalWrite(bargraph3, HIGH);
@@ -49,7 +50,8 @@ void loop() {
       digitalWrite(bargraph5, LOW);
       break;
 
-      case 4:
+
+   case 4:
       digitalWrite(bargraph1, LOW);
       digitalWrite(bargraph2, LOW);
       digitalWrite(bargraph3, LOW);
@@ -57,7 +59,8 @@ void loop() {
       digitalWrite(bargraph5, LOW);
       break;
 
-      case 5:
+
+   case 5:
       digitalWrite(bargraph1, LOW);
       digitalWrite(bargraph2, LOW);
       digitalWrite(bargraph3, LOW);
