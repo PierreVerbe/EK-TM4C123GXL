@@ -1,4 +1,4 @@
-int pinPhoto = 24;
+int pinPhoto = 25;
 int photoReading;
 
 void setup() {
