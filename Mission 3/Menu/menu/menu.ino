@@ -19,7 +19,9 @@ Serial1.read();
 }
 
 void loop() {
-  req_Cour();
+  reqTempCour();
+  Serial.println("OK");
+  //reqLumCour();
   Serial1.println("Veuillez entrer le chiffre du service souhaité.");
   Serial1.println("1. Afficher la température.");
   Serial1.println("2. Affichaer la luminosité."); 
@@ -30,11 +32,12 @@ void loop() {
   if(menu() == 1){
     Serial1.println("AFFICHAGE DE LA TEMPERATURE EN COURS"); 
     getTemp();
-    req_Cour();
+    reqTempCour();
   }
   else if(menu() == 2){
     Serial1.println("AFFICHAGE DE LA LUMINOSITE EN COURS");
     getLum();
+    reqLumCour();
   }
   else{
     Serial1.println("RIEN"); 
@@ -61,6 +64,21 @@ long menu() {
   }
 }
 
+void reqTempCour(){
+  String trame = COURANTE + OBJ + REQ_ECR + "3" + "01" + reqTemp() + "0125";
+  String check = getCheckSum(trame);
+  String trame_finale = trame + check;
+  Serial1.println(trame_finale);
+  getAns();
+}
+
+void reqLumCour(){
+  String trame = COURANTE + OBJ + REQ_ECR + "3" + "01" + reqLum() + "0125";
+  String check = getCheckSum(trame);
+  String trame_finale = trame + check;
+  Serial1.println(trame_finale);
+}
+
 void getTemp() {
   temperature = analogRead(pinLM35) ;
   temperature = map(temperature, 0, 4095, 0, 3300);
@@ -83,34 +101,52 @@ void getLum(){
   delay(250);
 }
 
-void req_Cour(){
-  String trame = COURANTE + OBJ + REQ_ECR + "3" + "01" + req_Temp() + "0125";
-  String check = getCheckSum(trame);
-  String trame_finale = trame + check;
-  Serial1.println(trame_finale);
-}
-
 String getCheckSum(String trame){
   int i = 0;
   int chk = 0;
   for (i = 0; i < trame.length(); i = i + 1){
     chk = chk + (int)trame.charAt(i);
   }
+  Serial.println(String(chk % 256, HEX));
   return String(chk % 256, HEX);
 }
 
-String req_Temp() {
+String reqTemp() {
   temperature = analogRead(pinLM35) ;
   temperature = map(temperature, 0, 4095, 0, 3300);
   temperature = temperature/10;
   int temp = (int)temperature;
-  Serial.println(temp);
-  return String(temp, HEX);
-  //Serial.println(temperature);
+  String temp2 = String(temp, HEX);
+  temp2 = hexToFour(temp2);
 
-  //int inByte = Serial1.read();
-  //Serial1.write("Température : "); 
-  //Serial1.print(temperature); 
-  //Serial1.write(" °C\n");
-  //delay(250);
+  return temp2;
+}
+
+String reqLum() {
+  luminosite = analogRead(pinPhoto);
+  int lum = (int)map(luminosite, 0, 4095, 0, 100);
+  
+  return String(lum % 256, HEX);
+}
+
+void getAns(){
+  String ans = "";
+  int delai = 100;
+  do{
+    ans = Serial1.read();
+    delay(delai);
+    delai = delai + 100;
+      if(delai > 5000){
+        Serial.println("ERREUR");
+      }
+  }
+  while(ans == "-1");
+}
+
+String hexToFour(String a){
+  while(a.length() < 4){
+    a = "0" + a;
+  }
+
+  return a;
 }
