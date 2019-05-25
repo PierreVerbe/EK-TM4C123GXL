@@ -50,7 +50,6 @@ void reqTempCour(){
   String trame = COURANTE + OBJ + REQ_ECR + "3" + "01" + getTemp() + "0125";
   String check = getCheckSum(trame); // obtention du ckecksum
   String trame_finale = trame + check; // ajout du checksum dans la trame
-  Serial.println(trame_finale);
   Serial1.println(trame_finale); // Envoi en Bluetooth
   light();
 }
@@ -80,7 +79,7 @@ String getTemp() {
   float temperature = map(analogRead(pinLM35), 0, 4095, 0, 3300); // on lit sur le pin analogique
   temperature = temperature/10; // valeur récupérée entre 0 et 4095 (12 bits), on la mappe entre 0 et 3300
   int temp = (int)temperature;
-  Serial.println("TEMPERATURE ACTUELLE : " + String(temp) + "Â°C"); // Affichage sur moniteur série
+  Serial.println("TEMPERATURE ACTUELLE : " + String(temp) + "°C"); // Affichage sur moniteur série
   String temp2 = String(temp, HEX); // Conversion de in a String en hexa
   temp2 = hexToFour(temp2); // sur 4 caractères
 
@@ -105,15 +104,25 @@ void getAns(){
   do{
     // Si la réponse lue vaut -1, délai incrémenté
     // Au bout de 5secs affichage erreur, connexion perdue avec passerelle
-    ans = Serial1.read();
+    ans = Serial1.readString();
     Serial.println("ANSWER = " + ans);
     delay(100);
     delai = delai + 100;
+    Serial.println(delai);
       if(delai > 5000){
-        Serial.println("ERREUR");
+        Serial.println("ERREUR VEUILLEZ RECONNECTER LA CARTE");
       }
   }
-  while(ans == "-1");
+  while(ans == "-1" or ans == "");
+}
+
+void getAnsActionneur(){
+  // Lecture moniteur Bluetooth en attente d'une réponse pour activation actionneur
+  String trame = Serial1.readString();
+  Serial.println(trame);
+  if(trame.substring(6,7).equals("a")){
+    actionneur();
+  }
 }
 
 String getCheckSum(String trame){
