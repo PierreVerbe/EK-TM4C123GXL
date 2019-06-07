@@ -2,6 +2,8 @@
 // Il est nécessaire de connecter la carte APP avec le logiciel passerelleWindows.jar.
 // Les schémas des trames se trouvent sur Moodle.
 
+int pinH_sens = 15; // pins actionneur
+int pinH_inverse = 7;
 int pinLM35 = 26; // pins actionneur
 int pinPhoto = 25;
 short bargraph1 = 2; // pins bargraph
@@ -24,14 +26,16 @@ void setup() {
 }
 
 void loop() {
-  delay(5000);
+  delay(10000);
   Serial.println("**** ENVOI DE LA TEMPERATURE ****");
   reqTempCour(); // Requête en écriture de la température vers la passerelle
-  getAns(); // Attente de réponse de la passerelle
-  delay(5000);
+  //getAns(); // Attente de réponse de la passerelle
+  getAnsActionneur();
+  delay(10000);
   Serial.println("**** ENVOI DE LA LUMINOSITE ****");
   reqLumCour(); // Requête en écriture de la luminosité vers la passerelle
-  getAns();
+  //getAns();
+  getAnsActionneur();
 }
 
 String reqActionneur(){
@@ -50,6 +54,7 @@ void reqTempCour(){
   String trame = COURANTE + OBJ + REQ_ECR + "3" + "01" + getTemp() + "0125";
   String check = getCheckSum(trame); // obtention du ckecksum
   String trame_finale = trame + check; // ajout du checksum dans la trame
+  Serial.println(trame_finale);
   Serial1.println(trame_finale); // Envoi en Bluetooth
   light();
 }
@@ -61,6 +66,7 @@ void reqLumCour(){
   String trame = COURANTE + OBJ + REQ_ECR + "5" + "01" + getLum() + "0125";
   String check = getCheckSum(trame);
   String trame_finale = trame + check;
+  Serial.println(trame_finale);
   Serial1.println(trame_finale);
   light();
 }
@@ -78,7 +84,7 @@ String getTemp() {
   // Récupération de la température
   float temperature = map(analogRead(pinLM35), 0, 4095, 0, 3300); // on lit sur le pin analogique
   temperature = temperature/10; // valeur récupérée entre 0 et 4095 (12 bits), on la mappe entre 0 et 3300
-  int temp = (int)temperature;
+  int temp = (int)temperature - 20;
   Serial.println("TEMPERATURE ACTUELLE : " + String(temp) + "°C"); // Affichage sur moniteur série
   String temp2 = String(temp, HEX); // Conversion de in a String en hexa
   temp2 = hexToFour(temp2); // sur 4 caractères
@@ -120,8 +126,11 @@ void getAnsActionneur(){
   // Lecture moniteur Bluetooth en attente d'une réponse pour activation actionneur
   String trame = Serial1.readString();
   Serial.println(trame);
-  if(trame.substring(6,7).equals("a")){
-    actionneur();
+  if(trame.substring(6,7).equals("a") && trame.substring(12,13).equals("1")){
+    actionneurOn();
+  }
+  else if(trame.substring(6,7).equals("a") && trame.substring(12,13).equals("0")){
+    actionneurOff();
   }
 }
 
@@ -149,4 +158,45 @@ void light(){
   digitalWrite(bargraph1, HIGH);
   delay(100);
   digitalWrite(bargraph1, LOW);
+}
+
+void actionneurOn(){
+  Serial.println("START moteur 100% bon sens");
+  // On envoit 5V dans un sens du pont
+  analogWrite(pinH_inverse, 0);
+  analogWrite(pinH_sens, 255);
+  delay(5000);
+  // On arrête tout
+  analogWrite(pinH_sens, 0);
+  analogWrite(pinH_inverse, 0);
+}
+
+void actionneurOff(){
+  // On envoit 5V dans l'autre sens du pont
+  Serial.println("START moteur 100% autre sens");
+  analogWrite(pinH_sens, 0);
+  analogWrite(pinH_inverse, 255);
+  delay(5000);
+  // On arrête tout
+  analogWrite(pinH_sens, 0);
+  analogWrite(pinH_inverse, 0);
+}
+
+void actionneur(){
+  // Démarrage de l'actionneur grâce au pont en H
+  Serial.println("START moteur 100% bon sens");
+  // On envoit 5V dans un sens du pont
+  analogWrite(pinH_inverse, 0);
+  analogWrite(pinH_sens, 255);
+  delay(5000); 
+
+  Serial.println("START moteur 100% autre sens");
+  // On envoit 5V dans l'autre sens du pont
+  analogWrite(pinH_sens, 0);
+  analogWrite(pinH_inverse, 255);
+  delay(5000);
+
+  // On arrête tout
+  analogWrite(pinH_sens, 0);
+  analogWrite(pinH_inverse, 0);
 }
